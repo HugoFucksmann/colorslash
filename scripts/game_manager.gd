@@ -9,7 +9,7 @@ const GAME_DURATION_SECONDS = 120
 var player_energy = 6.0
 var opponent_energy = 3.0
 const MAX_ENERGY = 12
-const ENERGY_REGEN_RATE = 1.0
+const ENERGY_REGEN_RATE = 0.5
 
 # --- Game State ---
 var time_left = GAME_DURATION_SECONDS
@@ -109,8 +109,9 @@ func _ready():
 	# Make sure battle_ui exists before connecting
 	if battle_ui != null:
 		battle_ui.place_tower_at.connect(_on_place_tower_at)
+		print("BattleUI reference is valid.")
 	else:
-		push_error("BattleUI not found!")
+		push_error("BattleUI not found! Please assign the BattleUI node to the 'battle_ui' export variable in the GameManager node in the editor.")
 	
 	opponent_cards.append(load("res://assets/cards/basic_tower_card.tres"))
 	opponent_cards.append(load("res://assets/cards/fan_tower_card.tres"))

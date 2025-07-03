@@ -5,9 +5,10 @@
 
 [node name="MainArena" type="Node2D"]
 
-[node name="GameManager" type="Node" parent="." node_paths=PackedStringArray("tile_map") groups=["game_manager"]]
+[node name="GameManager" type="Node" parent="." node_paths=PackedStringArray("tile_map", "battle_ui") groups=["game_manager"]]
 script = ExtResource("1_abcde")
 tile_map = NodePath("../TileMap")
+battle_ui = NodePath("../BattleUI")
 
 [node name="OpponentTimer" type="Timer" parent="GameManager"]
 wait_time = 3.0
