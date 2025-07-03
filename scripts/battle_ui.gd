@@ -22,24 +22,25 @@ func _ready():
 	# Esperar un frame para asegurarnos de que todos los nodos estén listos
 	await get_tree().process_frame
 	
-	# Cargar la carta predeterminada
-	var default_card = load("res://assets/cards/basic_tower_card.tres")
-	if default_card:
-		print("Carta predeterminada cargada correctamente: " + default_card.card_name)
+	# Cargar las cartas disponibles
+	var basic_card = load("res://assets/cards/basic_tower_card.tres")
+	var fan_card = load("res://assets/cards/fan_tower_card.tres")
+	
+	var deck: Array[CardData] = []
+	if basic_card:
+		print("Carta básica cargada correctamente: " + basic_card.card_name)
+		deck.append(basic_card)
+		deck.append(basic_card) # Add another basic card
+	if fan_card:
+		print("Carta de abanico cargada correctamente: " + fan_card.card_name)
+		deck.append(fan_card)
 		
-		# Crear un mazo con varias copias de la carta
-		var deck: Array[CardData] = []
-		for i in range(4):
-			deck.append(default_card)
-		
-		# Configurar el mazo
-		set_deck(deck)
-		
-		# Verificar que el contenedor de cartas sea visible
-		print("CardContainer visible: " + str(card_container.visible))
-		print("CardContainer rect_size: " + str(card_container.size))
-	else:
-		push_error("No se pudo cargar la carta predeterminada")
+	# Configurar el mazo
+	set_deck(deck)
+	
+	# Verificar que el contenedor de cartas sea visible
+	print("CardContainer visible: " + str(card_container.visible))
+	print("CardContainer rect_size: " + str(card_container.size))
 
 func _unhandled_input(event: InputEvent):
 	# Handle touch screen presses and mouse clicks universally

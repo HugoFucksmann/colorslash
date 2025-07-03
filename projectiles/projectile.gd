@@ -1,6 +1,5 @@
 extends Node2D
 
-var speed: float = 300.0
 var velocity: Vector2 = Vector2.ZERO
 var player_id: int = 1
 
@@ -22,9 +21,9 @@ func _process(delta):
 	# Check for collisions with tiles during movement
 	check_tile_collision()
 
-func setup(p_id: int, direction: Vector2):
+func setup(p_id: int, direction: Vector2, p_speed: float):
 	player_id = p_id
-	velocity = direction.normalized() * speed
+	velocity = direction.normalized() * p_speed
 	
 	# Set color based on player_id
 	if player_id == 1:

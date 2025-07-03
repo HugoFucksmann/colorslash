@@ -13,3 +13,6 @@ class_name CardData
 
 # Projectile Properties
 @export var projectile_scene: PackedScene
+@export var num_projectiles: int = 1
+@export var spread_angle: float = 0.0
+@export var projectile_speed: float = 300.0

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/card_data.gd" id="1_card_script"]
+[ext_resource type="PackedScene" uid="uid://b1c2d3e4f5g6h" path="res://towers/base_tower.tscn" id="2_tower_scene"]
+[ext_resource type="PackedScene" uid="uid://c2d3e4f5g6h7i" path="res://projectiles/projectile.tscn" id="3_projectile_scene"]
+
+[resource]
+script = ExtResource("1_card_script")
+card_name = "Fan Tower"
+cost = 5
+description = "A tower that shoots 5 paintballs in a 100-degree fan."
+tower_scene = ExtResource("2_tower_scene")
+size = Vector2i(2, 2)
+health = 120
+fire_rate = 0.8
+projectile_scene = ExtResource("3_projectile_scene")
+num_projectiles = 5
+spread_angle = 100.0
+projectile_speed = 300.0

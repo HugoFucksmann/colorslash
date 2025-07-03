@@ -17,6 +17,10 @@ var player_id: int = 1
 func _ready():
 	fire_timer.timeout.connect(shoot)
 
+var num_projectiles: int = 1
+var spread_angle: float = 0.0
+var projectile_speed: float = 300.0
+
 func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 	# Set properties from the card
 	health = card.health
@@ -25,6 +29,9 @@ func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 	size = card.size
 	player_id = p_id
 	origin_tile = tile_pos
+	num_projectiles = card.num_projectiles
+	spread_angle = card.spread_angle
+	projectile_speed = card.projectile_speed
 	
 	# Configure and start the firing timer
 	fire_timer.wait_time = 1.0 / fire_rate
@@ -42,13 +49,25 @@ func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 func shoot():
 	if not projectile_scene: return
 
-	# Determine fire direction based on player
-	var direction = Vector2.UP if player_id == 1 else Vector2.DOWN
-
-	var projectile = projectile_scene.instantiate()
-	get_parent().add_child(projectile)
-	projectile.position = position
-	projectile.setup(player_id, direction)
+	var base_direction = Vector2.UP if player_id == 1 else Vector2.DOWN
+	
+	if num_projectiles == 1:
+		var projectile = projectile_scene.instantiate()
+		get_parent().add_child(projectile)
+		projectile.position = position
+		projectile.setup(player_id, base_direction, projectile_speed)
+	else:
+		var start_angle = -spread_angle / 2.0
+		var angle_step = spread_angle / (num_projectiles - 1) if num_projectiles > 1 else 0
+		
+		for i in range(num_projectiles):
+			var current_angle = start_angle + i * angle_step
+			var rotated_direction = base_direction.rotated(deg_to_rad(current_angle))
+			
+			var projectile = projectile_scene.instantiate()
+			get_parent().add_child(projectile)
+			projectile.position = position
+			projectile.setup(player_id, rotated_direction, projectile_speed)
 
 func take_damage(amount: int):
 	health -= amount

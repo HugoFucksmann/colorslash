@@ -6,7 +6,7 @@ const MAP_HEIGHT = 12
 const GAME_DURATION_SECONDS = 120
 
 # --- Player State ---
-var player_energy = 3.0
+var player_energy = 6.0
 var opponent_energy = 3.0
 const MAX_ENERGY = 12
 const ENERGY_REGEN_RATE = 1.0
@@ -30,6 +30,7 @@ var game_timer
 @onready var opponent_timer: Timer = $OpponentTimer
 
 # --- Opponent AI ---
+var opponent_cards: Array[CardData]
 var opponent_card_to_play: CardData
 
 func _ready():
@@ -111,7 +112,8 @@ func _ready():
 	else:
 		push_error("BattleUI not found!")
 	
-	opponent_card_to_play = load("res://assets/cards/basic_tower_card.tres")
+	opponent_cards.append(load("res://assets/cards/basic_tower_card.tres"))
+	opponent_cards.append(load("res://assets/cards/fan_tower_card.tres"))
 	
 	# Create game timer
 	game_timer = get_tree().create_timer(GAME_DURATION_SECONDS)
@@ -288,7 +290,9 @@ func free_up_tiles(origin_tile: Vector2i, size: Vector2i):
 				tile_map.set_cell(0, current_tile, 0, Vector2i(0, 0))
 
 func _on_opponent_timer_timeout():
-	var card = opponent_card_to_play
+	# Select a random card from the opponent's available cards
+	var card = opponent_cards[randi() % opponent_cards.size()]
+	
 	if opponent_energy >= card.cost:
 		var spawn_x = randi_range(0, MAP_WIDTH - card.size.x)
 		var spawn_y = randi_range(0, MAP_HEIGHT / 2 - card.size.y)
