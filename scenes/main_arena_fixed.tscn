@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://bcyx8f1w2q8qj"]
+[gd_scene load_steps=3 format=3 uid="uid://dnvtlx487t314"]
 
-[ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_abcde"]
-[ext_resource type="PackedScene" path="res://scenes/battle_ui.tscn" id="2_battle_ui"]
-[ext_resource type="TileSet" path="res://assets/tiles.tres" id="3_tiles"]
+[ext_resource type="Script" uid="uid://7ksbufkcpylj" path="res://scripts/game_manager.gd" id="1_abcde"]
+[ext_resource type="PackedScene" uid="uid://d1q2w3e4r5t6y" path="res://scenes/battle_ui.tscn" id="2_battle_ui"]
 
 [node name="MainArena" type="Node2D"]
 
@@ -14,11 +13,9 @@ wait_time = 3.0
 autostart = true
 
 [node name="TileMap" type="TileMap" parent="."]
-tile_set = ExtResource("3_tiles")
+y_sort_enabled = true
+rendering_quadrant_size = 32
 format = 2
 layer_0/name = "Ground"
-cell_quadrant_size = 32
-y_sort_enabled = true
-show_collision = true
 
 [node name="BattleUI" parent="." instance=ExtResource("2_battle_ui")]

@@ -11,17 +11,35 @@ var selected_card: CardData = null # The card we are currently trying to place
 var placement_ghost: Node2D = null # The visual "ghost" of the tower on the cursor
 
 # --- Node References ---
-@onready var card_container: HBoxContainer = $CardContainer
-@onready var energy_bar: ProgressBar = $MarginContainer/VBoxContainer/EnergyBar
-@onready var time_label: Label = $MarginContainer/VBoxContainer/TimeLabel
-@onready var player_territory_label: Label = $MarginContainer/VBoxContainer/PlayerTerritoryLabel
-@onready var opponent_territory_label: Label = $MarginContainer/VBoxContainer/OpponentTerritoryLabel
+@onready var card_container: HBoxContainer = %CardContainer
+@onready var energy_bar: ProgressBar = %EnergyBar
+@onready var time_label: Label = %TimeLabel
+@onready var player_territory_label: Label = %PlayerTerritoryLabel
+@onready var opponent_territory_label: Label = %OpponentTerritoryLabel
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func _ready():
+	# Esperar un frame para asegurarnos de que todos los nodos estén listos
+	await get_tree().process_frame
+	
+	# Cargar la carta predeterminada
 	var default_card = load("res://assets/cards/basic_tower_card.tres")
 	if default_card:
-		set_deck([default_card, default_card, default_card, default_card])
+		print("Carta predeterminada cargada correctamente: " + default_card.card_name)
+		
+		# Crear un mazo con varias copias de la carta
+		var deck: Array[CardData] = []
+		for i in range(4):
+			deck.append(default_card)
+		
+		# Configurar el mazo
+		set_deck(deck)
+		
+		# Verificar que el contenedor de cartas sea visible
+		print("CardContainer visible: " + str(card_container.visible))
+		print("CardContainer rect_size: " + str(card_container.size))
+	else:
+		push_error("No se pudo cargar la carta predeterminada")
 
 func _unhandled_input(event: InputEvent):
 	# Handle touch screen presses and mouse clicks universally
@@ -66,18 +84,42 @@ func _process(delta):
 
 func set_deck(deck: Array[CardData]):
 	player_deck = deck
+	print("Configurando mazo con %d cartas" % deck.size())
+	
+	# Limpiar el contenedor de cartas
 	for child in card_container.get_children():
 		child.queue_free()
 	
+	# Añadir las nuevas cartas
 	for card_data in player_deck:
 		var card_ui_instance = CardUI.instantiate()
 		card_container.add_child(card_ui_instance)
 		card_ui_instance.set_card_data(card_data)
 		card_ui_instance.card_selected.connect(_on_card_selected)
+		print("Carta añadida: %s (Coste: %d)" % [card_data.card_name, card_data.cost])
+	
+	# Verificar que las cartas se hayan añadido
+	print("Total de cartas en UI: %d" % card_container.get_child_count())
 
 func update_ui(data: Dictionary):
-	# This part remains the same
-	pass # For brevity, assuming no changes here
+	if not is_node_ready(): return
+
+	if data.has("player_energy"):
+		energy_bar.max_value = game_manager.MAX_ENERGY
+		energy_bar.value = data.player_energy
+	
+	if data.has("time_left"):
+		var minutes = int(data.time_left) / 60
+		var seconds = int(data.time_left) % 60
+		time_label.text = "%02d:%02d" % [minutes, seconds]
+
+	if data.has("player_tiles") and data.has("total_tiles") and data.total_tiles > 0:
+		var player_percentage = (float(data.player_tiles) / data.total_tiles) * 100.0
+		player_territory_label.text = "Player: %.1f%%" % player_percentage
+
+	if data.has("opponent_tiles") and data.has("total_tiles") and data.total_tiles > 0:
+		var opponent_percentage = (float(data.opponent_tiles) / data.total_tiles) * 100.0
+		opponent_territory_label.text = "Opponent: %.1f%%" % opponent_percentage
 
 func _on_card_selected(card_data: CardData):
 	# If we are already placing a card, cancel it first

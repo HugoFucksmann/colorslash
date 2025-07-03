@@ -1,42 +1,92 @@
-[gd_scene load_steps=2 format=3 uid="uid://d1q2w3e4r5t6y"]
+[gd_scene load_steps=3 format=3 uid="uid://d1q2w3e4r5t6y"]
 
 [ext_resource type="Script" uid="uid://poso4jxw1wq" path="res://scripts/battle_ui.gd" id="1_ui_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
 
 [node name="BattleUI" type="CanvasLayer"]
 script = ExtResource("1_ui_script")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="TopUI" type="MarginContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="HBox" type="HBoxContainer" parent="TopUI"]
 layout_mode = 2
 
-[node name="TimeLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="PlayerTerritoryLabel" type="Label" parent="TopUI/HBox"]
+unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+text = "You: 0%"
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="TopUI/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 text = "02:00"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="EnergyBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+[node name="OpponentTerritoryLabel" type="Label" parent="TopUI/HBox"]
+unique_name_in_owner = true
 layout_mode = 2
-max_value = 10.0
-step = 0.1
-value = 5.0
-show_percentage = false
-
-[node name="PlayerTerritoryLabel" type="Label" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-text = "You: 0%"
-
-[node name="OpponentTerritoryLabel" type="Label" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
+size_flags_horizontal = 3
 text = "Opponent: 0%"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="CardContainer" type="HBoxContainer" parent="."]
+[node name="BottomUI" type="PanelContainer" parent="."]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -160.0
-offset_bottom = -10.0
+offset_top = -200.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBox" type="VBoxContainer" parent="BottomUI"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EnergyContainer" type="HBoxContainer" parent="BottomUI/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="EnergyLabel" type="Label" parent="BottomUI/VBox/EnergyContainer"]
+layout_mode = 2
+text = "Energy"
+
+[node name="EnergyBar" type="ProgressBar" parent="BottomUI/VBox/EnergyContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 12.0
+step = 1.0
+value = 3.0
+show_percentage = false
+
+[node name="CardContainer" type="HBoxContainer" parent="BottomUI/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
 alignment = 1

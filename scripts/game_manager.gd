@@ -6,9 +6,9 @@ const MAP_HEIGHT = 12
 const GAME_DURATION_SECONDS = 120
 
 # --- Player State ---
-var player_energy = 10.0
-var opponent_energy = 10.0
-const MAX_ENERGY = 10
+var player_energy = 3.0
+var opponent_energy = 3.0
+const MAX_ENERGY = 12
 const ENERGY_REGEN_RATE = 1.0
 
 # --- Game State ---
@@ -17,6 +17,7 @@ var player_tile_count = 0
 var opponent_tile_count = 0
 var total_tiles = MAP_WIDTH * MAP_HEIGHT
 var occupied_tiles = {} # {Vector2i: Node}
+var play_area_rect: Rect2
 
 # Game timer variables
 var game_time = 120 # 2 minutes in seconds
@@ -24,14 +25,15 @@ var timer_label
 var game_timer
 
 # --- Node References ---
-@onready var tile_map: TileMap = get_parent().get_node("TileMap")
-@onready var battle_ui = get_parent().get_node("BattleUI")
+@export var tile_map: TileMap
+@export var battle_ui: CanvasLayer
 @onready var opponent_timer: Timer = $OpponentTimer
 
 # --- Opponent AI ---
 var opponent_card_to_play: CardData
 
 func _ready():
+	print("GameManager _ready() called.")
 	# Ensure TileMap has a tile_set
 	if tile_map.tile_set == null:
 		var tile_set_resource = load("res://assets/tiles.tres")
@@ -91,12 +93,17 @@ func _ready():
 			atlas_source.create_tile(Vector2i(2, 0)) # Opponent (red)
 			
 			# Add the atlas source to the tile set
-			new_tile_set.add_source(atlas_source)
+			new_tile_set.add_source(atlas_source, 0)
 			
 			# Assign the new tile set to the tile map
 			tile_map.tile_set = new_tile_set
 	
 	generate_map()
+	print("Map generation completed in _ready().")
+
+	# Define the playable area based on the TileMap's used rectangle
+	var used_rect = tile_map.get_used_rect()
+	play_area_rect = Rect2(tile_map.map_to_local(used_rect.position), tile_map.map_to_local(used_rect.end) - tile_map.map_to_local(used_rect.position) + Vector2(32,32))
 	
 	# Make sure battle_ui exists before connecting
 	if battle_ui != null:
@@ -141,6 +148,7 @@ func _process(delta):
 	
 	# Check for 90% victory condition during gameplay
 	if player_percentage >= 90.0 or opponent_percentage >= 90.0:
+		print("Game over condition met in _process(). Player: %.1f%%, Opponent: %.1f%%" % [player_percentage, opponent_percentage])
 		_on_game_over()
 	
 	# Update battle UI data
@@ -182,6 +190,7 @@ func generate_map():
 	print("Map generated with ", player_tile_count, " player tiles and ", opponent_tile_count, " opponent tiles")
 
 func _on_game_over():
+	print("Entering _on_game_over() function.")
 	print("Game Over!")
 	
 	# Calculate percentage of territory for each player
@@ -296,10 +305,15 @@ func claim_tile(player_id: int, tile_pos: Vector2i):
 	
 	# Get the current owner of the tile
 	var current_tile_coords = tile_map.get_cell_atlas_coords(0, tile_pos)
-	if current_tile_coords == Vector2i(-1, -1):
-		print("Tile at ", tile_pos, " has no atlas coords")
-		return
-	
+	var source_id = tile_map.get_cell_source_id(0, tile_pos)
+
+	if source_id == -1:
+		# This can happen if the tile is empty. Assume source 0 for setting new tile.
+		source_id = 0
+		if current_tile_coords == Vector2i(-1,-1):
+			# Tile is completely empty, no previous owner
+			pass 
+
 	var current_owner_id = current_tile_coords.x
 	
 	# If the tile already belongs to this player, do nothing
@@ -316,7 +330,7 @@ func claim_tile(player_id: int, tile_pos: Vector2i):
 	
 	# Set the new tile owner
 	var new_tile_coords = Vector2i(player_id, 0)
-	tile_map.set_cell(0, tile_pos, 0, new_tile_coords)
+	tile_map.set_cell(0, tile_pos, source_id, new_tile_coords)
 	
 	# Update tile counts for the new owner
 	if player_id == 1: 

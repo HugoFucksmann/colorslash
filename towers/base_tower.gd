@@ -41,15 +41,14 @@ func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 
 func shoot():
 	if not projectile_scene: return
-	
-	# Simple targeting: fire straight ahead
-	var target_y = -100 if player_id == 1 else game_manager.tile_map.get_used_rect().end.y * 32 + 100
-	var target_pos = Vector2(position.x, target_y)
-	
+
+	# Determine fire direction based on player
+	var direction = Vector2.UP if player_id == 1 else Vector2.DOWN
+
 	var projectile = projectile_scene.instantiate()
 	get_parent().add_child(projectile)
 	projectile.position = position
-	projectile.setup(player_id, target_pos)
+	projectile.setup(player_id, direction)
 
 func take_damage(amount: int):
 	health -= amount
