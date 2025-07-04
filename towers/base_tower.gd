@@ -58,7 +58,7 @@ func shoot():
 		projectile.setup(player_id, base_direction, projectile_speed)
 	else:
 		var start_angle = -spread_angle / 2.0
-		var angle_step = spread_angle / (num_projectiles - 1) if num_projectiles > 1 else 0
+		var angle_step = spread_angle / (num_projectiles - 1) if num_projectiles > 1 else 0.0
 		
 		for i in range(num_projectiles):
 			var current_angle = start_angle + i * angle_step

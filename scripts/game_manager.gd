@@ -37,8 +37,8 @@ func _ready():
 	print("GameManager _ready() called.")
 	# Ensure TileMap has a tile_set
 	if tile_map.tile_set == null:
-		var tile_set_resource = load("res://assets/tiles.tres")
-		if tile_set_resource:
+		if ResourceLoader.exists("res://assets/tiles.tres"):
+			var tile_set_resource = load("res://assets/tiles.tres")
 			tile_map.tile_set = tile_set_resource
 			print("Loaded tile_set from resource")
 		else:
@@ -106,11 +106,8 @@ func _ready():
 	var used_rect = tile_map.get_used_rect()
 	play_area_rect = Rect2(tile_map.map_to_local(used_rect.position), tile_map.map_to_local(used_rect.end) - tile_map.map_to_local(used_rect.position) + Vector2(32,32))
 	
-	# Make sure battle_ui exists before connecting
-	if battle_ui != null:
-		battle_ui.place_tower_at.connect(_on_place_tower_at)
-		print("BattleUI reference is valid.")
-	else:
+	# Make sure battle_ui exists
+	if battle_ui == null:
 		push_error("BattleUI not found! Please assign the BattleUI node to the 'battle_ui' export variable in the GameManager node in the editor.")
 	
 	opponent_cards.append(load("res://assets/cards/basic_tower_card.tres"))
@@ -165,6 +162,27 @@ func _process(delta):
 	
 	if battle_ui:
 		battle_ui.update_ui(ui_data)
+
+func _can_drop_data(at_position, data):
+	if data is CardData:
+		var tile_pos = tile_map.local_to_map(tile_map.to_local(at_position))
+		# Player's area is the bottom half of the map
+		if tile_pos.y >= MAP_HEIGHT / 2:
+			return is_placement_valid(1, data, tile_pos)
+	return false
+
+func _drop_data(at_position, data):
+	# End the drag after a drop attempt to hide the ghost
+	if battle_ui:
+		battle_ui.handle_drag_end()
+	if data is CardData:
+		var tile_pos = tile_map.local_to_map(tile_map.to_local(at_position))
+		if is_placement_valid(1, data, tile_pos):
+			if spend_energy(1, data.cost):
+				place_tower(1, data, tile_pos)
+				# Here you would typically remove the card from the player's hand
+			else:
+				print("Not enough energy to place tower!")
 
 func generate_map():
 	# Reset tile counts
@@ -233,16 +251,6 @@ func _on_game_over():
 	
 	print(winner_text)
 	get_tree().paused = true
-
-func _on_place_tower_at(card_data: CardData, screen_position: Vector2):
-	var tile_pos = tile_map.local_to_map(tile_map.to_local(screen_position))
-	if not is_placement_valid(1, card_data, tile_pos):
-		print("Placement is not valid.")
-		return
-	if spend_energy(1, card_data.cost):
-		place_tower(1, card_data, tile_pos)
-	else:
-		print("Not enough energy.")
 
 func is_placement_valid(player_id: int, card: CardData, origin_tile: Vector2i) -> bool:
 	var player_area_y_limit = MAP_HEIGHT / 2
@@ -380,7 +388,7 @@ func create_game_ui():
 	# Create a UI container
 	var ui_container = Control.new()
 	ui_container.name = "UI"
-	get_parent().add_child(ui_container)
+	get_parent().call_deferred("add_child", ui_container)
 	
 	# Create timer display
 	timer_label = Label.new()

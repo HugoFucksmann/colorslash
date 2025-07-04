@@ -2,13 +2,10 @@ extends CanvasLayer
 
 const CardUI = preload("res://scenes/card_ui.tscn")
 
-# Signal to be emitted when the player confirms a tower placement
-signal place_tower_at(card_data, screen_position)
-
 # --- State ---
 var player_deck: Array[CardData] = []
-var selected_card: CardData = null # The card we are currently trying to place
-var placement_ghost: Node2D = null # The visual "ghost" of the tower on the cursor
+var placement_ghost: ColorRect = null
+var dragged_card_data: CardData = null
 
 # --- Node References ---
 @onready var card_container: HBoxContainer = %CardContainer
@@ -19,6 +16,8 @@ var placement_ghost: Node2D = null # The visual "ghost" of the tower on the curs
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func _ready():
+
+
 	# Esperar un frame para asegurarnos de que todos los nodos estén listos
 	await get_tree().process_frame
 	
@@ -42,46 +41,9 @@ func _ready():
 	print("CardContainer visible: " + str(card_container.visible))
 	print("CardContainer rect_size: " + str(card_container.size))
 
-func _unhandled_input(event: InputEvent):
-	# Handle touch screen presses and mouse clicks universally
-	if selected_card and event is InputEventScreenTouch and event.is_pressed():
-		handle_placement_attempt(event.position)
-	elif selected_card and event is InputEventMouseButton and event.is_pressed():
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			handle_placement_attempt(event.position)
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			cancel_placement()
-
-func handle_placement_attempt(screen_position: Vector2):
-	if game_manager == null:
-		push_error("Game manager is null")
-		cancel_placement()
-		return
-	
-	var tile_map = game_manager.tile_map
-	if tile_map == null:
-		push_error("TileMap is null")
-		cancel_placement()
-		return
-	
-	# Convert screen coordinates to tile map coordinates
-	var tile_pos = tile_map.local_to_map(tile_map.to_local(screen_position))
-	
-	emit_signal("place_tower_at", selected_card, screen_position) # Pass screen_position instead of tile_pos
-	cancel_placement()
-
-func _process(delta):
-	# If we are in placement mode, make the ghost follow the cursor/touch
-	if placement_ghost and game_manager != null:
-		var tile_map = game_manager.tile_map
-		if tile_map != null:
-			var screen_pos = get_viewport().get_mouse_position()
-			var tile_pos = tile_map.local_to_map(tile_map.to_local(screen_pos))
-			placement_ghost.global_position = tile_map.map_to_local(tile_pos)
-			# TODO: Add visual feedback (green/red) if placement is valid
-		else:
-			# Fallback if tile_map is null - just follow mouse position
-			placement_ghost.global_position = get_viewport().get_mouse_position()
+func _process(_delta):
+	if placement_ghost:
+		update_placement_ghost()
 
 func set_deck(deck: Array[CardData]):
 	player_deck = deck
@@ -96,7 +58,7 @@ func set_deck(deck: Array[CardData]):
 		var card_ui_instance = CardUI.instantiate()
 		card_container.add_child(card_ui_instance)
 		card_ui_instance.set_card_data(card_data)
-		card_ui_instance.card_selected.connect(_on_card_selected)
+		card_ui_instance.drag_started.connect(_on_card_drag_started)
 		print("Carta añadida: %s (Coste: %d)" % [card_data.card_name, card_data.cost])
 	
 	# Verificar que las cartas se hayan añadido
@@ -110,8 +72,8 @@ func update_ui(data: Dictionary):
 		energy_bar.value = data.player_energy
 	
 	if data.has("time_left"):
-		var minutes = int(data.time_left) / 60
-		var seconds = int(data.time_left) % 60
+		var minutes = floor(data.time_left / 60)
+		var seconds = int(fmod(data.time_left, 60))
 		time_label.text = "%02d:%02d" % [minutes, seconds]
 
 	if data.has("player_tiles") and data.has("total_tiles") and data.total_tiles > 0:
@@ -122,23 +84,35 @@ func update_ui(data: Dictionary):
 		var opponent_percentage = (float(data.opponent_tiles) / data.total_tiles) * 100.0
 		opponent_territory_label.text = "Opponent: %.1f%%" % opponent_percentage
 
-func _on_card_selected(card_data: CardData):
-	# If we are already placing a card, cancel it first
+func _on_card_drag_started(card_data: CardData):
 	if placement_ghost:
-		cancel_placement()
-		
-	# Enter placement mode
-	selected_card = card_data
-	
-	# Create the placement ghost
-	if selected_card.tower_scene:
-		placement_ghost = selected_card.tower_scene.instantiate()
-		# Make it semi-transparent
-		placement_ghost.modulate = Color(1, 1, 1, 0.5)
-		add_child(placement_ghost)
+		placement_ghost.queue_free()
 
-func cancel_placement():
+	dragged_card_data = card_data
+	placement_ghost = ColorRect.new()
+	placement_ghost.size = Vector2(dragged_card_data.size) * Vector2(32, 32)
+	# Add ghost to the main scene tree to use global coordinates
+	get_tree().root.add_child(placement_ghost)
+
+func handle_drag_end():
 	if placement_ghost:
 		placement_ghost.queue_free()
 		placement_ghost = null
-	selected_card = null
+	dragged_card_data = null
+
+func update_placement_ghost():
+	if not game_manager or not game_manager.tile_map or not is_instance_valid(placement_ghost):
+		return
+
+	var tile_map = game_manager.tile_map
+	var mouse_pos = get_viewport().get_mouse_position()
+	var tile_pos = tile_map.local_to_map(tile_map.to_local(mouse_pos))
+
+	# Snap ghost to grid
+	placement_ghost.global_position = tile_map.map_to_local(tile_pos)
+
+	# Check for validity and change color
+	if game_manager.is_placement_valid(1, dragged_card_data, tile_pos):
+		placement_ghost.color = Color(0, 1, 0, 0.5) # Green
+	else:
+		placement_ghost.color = Color(1, 0, 0, 0.5) # Red
