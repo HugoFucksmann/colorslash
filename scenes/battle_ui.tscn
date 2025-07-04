@@ -14,26 +14,31 @@ corner_radius_top_right = 8
 [node name="BattleUI" type="CanvasLayer"]
 script = ExtResource("1_ui_script")
 
-[node name="TopUI" type="MarginContainer" parent="."]
-anchors_preset = 10
+[node name="MainVBox" type="VBoxContainer" parent="."]
+anchors_preset = 15
 anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopUI" type="MarginContainer" parent="MainVBox"]
+layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 10
 
-[node name="HBox" type="HBoxContainer" parent="TopUI"]
+[node name="HBox" type="HBoxContainer" parent="MainVBox/TopUI"]
 layout_mode = 2
 
-[node name="PlayerTerritoryLabel" type="Label" parent="TopUI/HBox"]
+[node name="PlayerTerritoryLabel" type="Label" parent="MainVBox/TopUI/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "You: 0%"
 vertical_alignment = 1
 
-[node name="TimeLabel" type="Label" parent="TopUI/HBox"]
+[node name="TimeLabel" type="Label" parent="MainVBox/TopUI/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -41,7 +46,7 @@ text = "02:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="OpponentTerritoryLabel" type="Label" parent="TopUI/HBox"]
+[node name="OpponentTerritoryLabel" type="Label" parent="MainVBox/TopUI/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -49,29 +54,29 @@ text = "Opponent: 0%"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="BottomUI" type="PanelContainer" parent="."]
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -200.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="GameAreaPlaceholder" type="Control" parent="MainVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BottomUI" type="PanelContainer" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
-[node name="VBox" type="VBoxContainer" parent="BottomUI"]
+[node name="VBox" type="VBoxContainer" parent="MainVBox/BottomUI"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="EnergyContainer" type="HBoxContainer" parent="BottomUI/VBox"]
+[node name="EnergyContainer" type="HBoxContainer" parent="MainVBox/BottomUI/VBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="EnergyLabel" type="Label" parent="BottomUI/VBox/EnergyContainer"]
+[node name="EnergyLabel" type="Label" parent="MainVBox/BottomUI/VBox/EnergyContainer"]
 layout_mode = 2
 text = "Energy"
 
-[node name="EnergyBar" type="ProgressBar" parent="BottomUI/VBox/EnergyContainer"]
+[node name="EnergyBar" type="ProgressBar" parent="MainVBox/BottomUI/VBox/EnergyContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
@@ -82,7 +87,7 @@ step = 1.0
 value = 3.0
 show_percentage = false
 
-[node name="CardContainer" type="HBoxContainer" parent="BottomUI/VBox"]
+[node name="CardContainer" type="HBoxContainer" parent="MainVBox/BottomUI/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2

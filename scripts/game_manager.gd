@@ -1,8 +1,8 @@
 extends Node
 
 # --- Game Settings ---
-const MAP_WIDTH = 20
-const MAP_HEIGHT = 12
+var map_width = 20
+var map_height = 12
 const GAME_DURATION_SECONDS = 120
 
 # --- Player State ---
@@ -15,7 +15,7 @@ const ENERGY_REGEN_RATE = 0.5
 var time_left = GAME_DURATION_SECONDS
 var player_tile_count = 0
 var opponent_tile_count = 0
-var total_tiles = MAP_WIDTH * MAP_HEIGHT
+var total_tiles = map_width * map_height
 var occupied_tiles = {} # {Vector2i: Node}
 var play_area_rect: Rect2
 
@@ -27,6 +27,7 @@ var game_timer
 # --- Node References ---
 @export var tile_map: TileMap
 @export var battle_ui: CanvasLayer
+@export var main_camera: Camera2D
 @onready var opponent_timer: Timer = $OpponentTimer
 
 # --- Opponent AI ---
@@ -45,21 +46,21 @@ func _ready():
 			# Create a new TileSet programmatically if we can't load it
 			print("Creating new TileSet programmatically")
 			var new_tile_set = TileSet.new()
-			new_tile_set.tile_size = Vector2i(32, 32)
+			new_tile_set.tile_size = Vector2i(16, 16)
 			
 			# Create a source for the tile set
 			var atlas_source = TileSetAtlasSource.new()
-			atlas_source.texture_region_size = Vector2i(32, 32)
+			atlas_source.texture_region_size = Vector2i(16, 16)
 			
 			# Create a simple texture for the tiles with visible grid
-			var img = Image.create(96, 32, false, Image.FORMAT_RGBA8)
+			var img = Image.create(48, 16, false, Image.FORMAT_RGBA8)
 			
 			# Fill with base colors: gray, blue, red
 			img.fill(Color(0.5, 0.5, 0.5, 1)) # Gray for neutral
 			
 			# Create the three colored tiles with borders
 			for tile_idx in range(3):
-				var base_x = tile_idx * 32
+				var base_x = tile_idx * 16
 				var color = Color(0.5, 0.5, 0.5, 1) # Gray (neutral)
 				
 				if tile_idx == 1:
@@ -68,21 +69,21 @@ func _ready():
 					color = Color(1, 0.2, 0.2, 1) # Red (opponent)
 				
 				# Fill the tile area with the base color
-				for x in range(32):
-					for y in range(32):
+				for x in range(16):
+					for y in range(16):
 						img.set_pixel(base_x + x, y, color)
 				
 				# Add a darker border to make the grid visible
 				var border_color = color.darkened(0.3)
-				for x in range(32):
+				for x in range(16):
 					# Horizontal borders
 					img.set_pixel(base_x + x, 0, border_color)
-					img.set_pixel(base_x + x, 31, border_color)
+					img.set_pixel(base_x + x, 15, border_color)
 				
-				for y in range(32):
+				for y in range(16):
 					# Vertical borders
 					img.set_pixel(base_x, y, border_color)
-					img.set_pixel(base_x + 31, y, border_color)
+					img.set_pixel(base_x + 15, y, border_color)
 			
 			# Create texture from image
 			var texture = ImageTexture.create_from_image(img)
@@ -99,16 +100,11 @@ func _ready():
 			# Assign the new tile set to the tile map
 			tile_map.tile_set = new_tile_set
 	
-	generate_map()
-	print("Map generation completed in _ready().")
-
-	# Define the playable area based on the TileMap's used rectangle
-	var used_rect = tile_map.get_used_rect()
-	play_area_rect = Rect2(tile_map.map_to_local(used_rect.position), tile_map.map_to_local(used_rect.end) - tile_map.map_to_local(used_rect.position) + Vector2(32,32))
-	
 	# Make sure battle_ui exists
 	if battle_ui == null:
 		push_error("BattleUI not found! Please assign the BattleUI node to the 'battle_ui' export variable in the GameManager node in the editor.")
+	else:
+		battle_ui.game_area_resized.connect(_on_game_area_resized)
 	
 	opponent_cards.append(load("res://assets/cards/basic_tower_card.tres"))
 	opponent_cards.append(load("res://assets/cards/fan_tower_card.tres"))
@@ -120,9 +116,6 @@ func _ready():
 	# Start opponent timer
 	opponent_timer.timeout.connect(_on_opponent_timer_timeout)
 	opponent_timer.start()
-	
-	# Create UI for game stats
-	create_game_ui()
 
 func _process(delta):
 	time_left -= delta
@@ -167,20 +160,19 @@ func generate_map():
 	# Reset tile counts
 	player_tile_count = 0
 	opponent_tile_count = 0
-	total_tiles = MAP_WIDTH * MAP_HEIGHT
+	total_tiles = map_width * map_height
 	
 	# Define tile coordinates in the atlas
 	var neutral_tile = Vector2i(0, 0) # Gray
 	var player_tile = Vector2i(1, 0)  # Blue
 	var opponent_tile = Vector2i(2, 0) # Red
 	
-	# Create the map with player territories
-	for x in range(MAP_WIDTH):
-		for y in range(MAP_HEIGHT):
+	# Generate the tilemap grid
+	for x in range(map_width):
+		for y in range(map_height):
 			var tile_pos = Vector2i(x, y)
-			var player_area_y_limit = MAP_HEIGHT / 2
-			
-			if y >= player_area_y_limit: # Bottom half - Player (blue)
+			# Split map into two halves
+			if y >= map_height / 2: # Bottom half - Player (blue)
 				tile_map.set_cell(0, tile_pos, 0, player_tile)
 				player_tile_count += 1
 			else: # Top half - Opponent (red)
@@ -232,7 +224,7 @@ func _on_game_over():
 	get_tree().paused = true
 
 func is_placement_valid(player_id: int, card: CardData, origin_tile: Vector2i) -> bool:
-	var player_area_y_limit = MAP_HEIGHT / 2
+	var player_area_y_limit = map_height / 2
 	if player_id == 1 and origin_tile.y < player_area_y_limit: return false
 	if player_id == 2 and origin_tile.y >= player_area_y_limit: return false
 	for x in range(card.size.x):
@@ -282,8 +274,8 @@ func _on_opponent_timer_timeout():
 	var card = opponent_cards[randi() % opponent_cards.size()]
 	
 	if opponent_energy >= card.cost:
-		var spawn_x = randi_range(0, MAP_WIDTH - card.size.x)
-		var spawn_y = randi_range(0, MAP_HEIGHT / 2 - card.size.y)
+		var spawn_x = randi_range(0, map_width - card.size.x)
+		var spawn_y = randi_range(0, map_height / 2 - card.size.y)
 		var tile_pos = Vector2i(spawn_x, spawn_y)
 		if is_placement_valid(2, card, tile_pos):
 			if spend_energy(2, card.cost):
@@ -336,7 +328,7 @@ func claim_tile(player_id: int, tile_pos: Vector2i):
 	var tile_center = tile_map.map_to_local(tile_pos)
 	var claim_effect = ColorRect.new()
 	get_parent().add_child(claim_effect)
-	claim_effect.size = Vector2(32, 32) # Same as tile size
+	claim_effect.size = Vector2(16, 16) # Same as tile size
 	claim_effect.position = tile_center - claim_effect.size / 2
 	
 	# Set color based on player
@@ -363,36 +355,27 @@ func spend_energy(player_id: int, amount: float) -> bool:
 			return true
 	return false
 
-func create_game_ui():
-	# Create a UI container
-	var ui_container = Control.new()
-	ui_container.name = "UI"
-	get_parent().call_deferred("add_child", ui_container)
-	
-	# Create timer display
-	timer_label = Label.new()
-	timer_label.name = "TimerLabel"
-	ui_container.add_child(timer_label)
-	timer_label.text = "02:00"
-	timer_label.position = Vector2(512, 30)
-	timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	timer_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	timer_label.add_theme_font_size_override("font_size", 24)
-	
-	# Create player territory percentage display
-	var player_percentage_label = Label.new()
-	player_percentage_label.name = "PlayerPercentage"
-	ui_container.add_child(player_percentage_label)
-	player_percentage_label.text = "Player: 50.0%"
-	player_percentage_label.position = Vector2(100, 30)
-	player_percentage_label.add_theme_color_override("font_color", Color(0.2, 0.4, 1))
-	player_percentage_label.add_theme_font_size_override("font_size", 18)
-	
-	# Create opponent territory percentage display
-	var opponent_percentage_label = Label.new()
-	opponent_percentage_label.name = "OpponentPercentage"
-	ui_container.add_child(opponent_percentage_label)
-	opponent_percentage_label.text = "Opponent: 50.0%"
-	opponent_percentage_label.position = Vector2(900, 30)
-	opponent_percentage_label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
-	opponent_percentage_label.add_theme_font_size_override("font_size", 18)
+func _on_game_area_resized(rect: Rect2):
+	# Calculate map dimensions based on the provided rect and tile size
+	var tile_size = Vector2(tile_map.tile_set.tile_size) # Explicitly convert to Vector2
+	map_width = floori(rect.size.x / tile_size.x)
+	map_height = floori(rect.size.y / tile_size.y)
+
+	var map_pixel_size = Vector2(map_width, map_height) * tile_size
+
+	# Center the TileMap within the game area
+	var new_tilemap_pos = rect.position + (rect.size - map_pixel_size) / 2.0
+	tile_map.position = new_tilemap_pos
+
+	play_area_rect = Rect2(new_tilemap_pos, map_pixel_size)
+
+	generate_map()
+
+	# Adjust camera to fit the new play area
+	if main_camera:
+		main_camera.position = play_area_rect.get_center()
+		# Calculate zoom level to fit the play area width and height
+		var screen_size = get_viewport().get_visible_rect().size
+		var zoom_x = play_area_rect.size.x / screen_size.x
+		var zoom_y = play_area_rect.size.y / screen_size.y
+		main_camera.zoom = Vector2(max(zoom_x, zoom_y), max(zoom_x, zoom_y))

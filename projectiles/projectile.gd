@@ -6,6 +6,11 @@ var damage: int = 20
 
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")
 func _process(delta):
+	# Safety check to ensure game_manager is available.
+	if not game_manager:
+		game_manager = get_tree().get_first_node_in_group("game_manager")
+		if not game_manager:
+			return # Wait until game_manager is ready
 	# Move the projectile
 	position += velocity * delta
 

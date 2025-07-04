@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal game_area_resized(rect: Rect2)
+
 const CardUI = preload("res://scenes/card_ui.tscn")
 
 # --- State ---
@@ -15,13 +17,16 @@ const DropZoneScript = preload("res://scripts/drop_zone.gd")
 @onready var time_label: Label = %TimeLabel
 @onready var player_territory_label: Label = %PlayerTerritoryLabel
 @onready var opponent_territory_label: Label = %OpponentTerritoryLabel
+@onready var game_area_placeholder: Control = %GameAreaPlaceholder
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func _ready():
-
-
-	# Esperar un frame para asegurarnos de que todos los nodos estén listos
+	# Emit the size of the game area once the UI is ready.
 	await get_tree().process_frame
+	emit_signal("game_area_resized", game_area_placeholder.get_global_rect())
+
+
+
 	
 	# Cargar las cartas disponibles
 	var basic_card = load("res://assets/cards/basic_tower_card.tres")
@@ -103,7 +108,8 @@ func _on_card_drag_started(card_data: CardData):
 
 	dragged_card_data = card_data
 	placement_ghost = ColorRect.new()
-	placement_ghost.size = Vector2(dragged_card_data.size) * Vector2(32, 32)
+	var tile_size = Vector2(game_manager.tile_map.tile_set.tile_size) # Explicitly convert to Vector2
+	placement_ghost.size = Vector2(dragged_card_data.size) * tile_size
 	# Add ghost to the main scene tree to use global coordinates
 	get_tree().root.add_child(placement_ghost)
 

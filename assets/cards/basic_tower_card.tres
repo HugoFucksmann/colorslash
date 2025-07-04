@@ -12,5 +12,6 @@ description = "A standard tower that shoots paintballs."
 tower_scene = ExtResource("2_tower_scene")
 size = Vector2i(2, 2)
 health = 150
+attack_type = 0
 fire_rate = 1.2
 projectile_scene = ExtResource("3_projectile_scene")

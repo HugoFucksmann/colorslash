@@ -12,6 +12,7 @@ description = "A tower that shoots 5 paintballs in a 100-degree fan."
 tower_scene = ExtResource("2_tower_scene")
 size = Vector2i(2, 2)
 health = 120
+attack_type = 1
 fire_rate = 0.8
 projectile_scene = ExtResource("3_projectile_scene")
 num_projectiles = 5

@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="pvpC"
-run/main_scene="res://scenes/main_arena.tscn"
+run/main_scene="res://scenes/main_flow.tscn"
 config/features=PackedStringArray("4.4", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GlobalSignals="*res://scripts/global_signals.gd"
+SceneManager="*res://scripts/scene_manager.gd"
 
 [display]
 
