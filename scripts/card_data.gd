@@ -16,3 +16,4 @@ class_name CardData
 @export var num_projectiles: int = 1
 @export var spread_angle: float = 0.0
 @export var projectile_speed: float = 300.0
+@export var projectile_damage: int = 20

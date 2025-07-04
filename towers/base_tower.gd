@@ -20,6 +20,7 @@ func _ready():
 var num_projectiles: int = 1
 var spread_angle: float = 0.0
 var projectile_speed: float = 300.0
+var projectile_damage: int = 20
 
 func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 	# Set properties from the card
@@ -32,6 +33,7 @@ func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 	num_projectiles = card.num_projectiles
 	spread_angle = card.spread_angle
 	projectile_speed = card.projectile_speed
+	projectile_damage = card.projectile_damage
 	
 	# Configure and start the firing timer
 	fire_timer.wait_time = 1.0 / fire_rate
@@ -55,7 +57,7 @@ func shoot():
 		var projectile = projectile_scene.instantiate()
 		get_parent().add_child(projectile)
 		projectile.position = position
-		projectile.setup(player_id, base_direction, projectile_speed)
+		projectile.setup(player_id, base_direction, projectile_speed, projectile_damage)
 	else:
 		var start_angle = -spread_angle / 2.0
 		var angle_step = spread_angle / (num_projectiles - 1) if num_projectiles > 1 else 0.0
@@ -67,7 +69,7 @@ func shoot():
 			var projectile = projectile_scene.instantiate()
 			get_parent().add_child(projectile)
 			projectile.position = position
-			projectile.setup(player_id, rotated_direction, projectile_speed)
+			projectile.setup(player_id, rotated_direction, projectile_speed, projectile_damage)
 
 func take_damage(amount: int):
 	health -= amount

@@ -2,6 +2,7 @@ extends Node2D
 
 var velocity: Vector2 = Vector2.ZERO
 var player_id: int = 1
+var damage: int = 20
 
 @onready var game_manager = get_tree().get_first_node_in_group("game_manager")
 func _process(delta):
@@ -21,9 +22,10 @@ func _process(delta):
 	# Check for collisions with tiles during movement
 	check_tile_collision()
 
-func setup(p_id: int, direction: Vector2, p_speed: float):
+func setup(p_id: int, direction: Vector2, p_speed: float, p_damage: int):
 	player_id = p_id
 	velocity = direction.normalized() * p_speed
+	damage = p_damage
 	
 	# Set color based on player_id
 	if player_id == 1:
@@ -58,13 +60,13 @@ func impact(impact_pos: Vector2):
 		if game_manager.occupied_tiles.has(tile_pos):
 			var tower = game_manager.occupied_tiles[tile_pos]
 			if tower.player_id != player_id:
-				tower.take_damage(20)
+				tower.take_damage(damage)
 				print("[PROJECTILE] Hit enemy tower! Remaining health: %d" % tower.health)
 				impact_color = Color(1, 0.3, 0, 0.8)
 				
 				var damage_label = Label.new()
 				get_parent().add_child(damage_label)
-				damage_label.text = "-20"
+				damage_label.text = "-%d" % damage
 				damage_label.position = impact_pos - Vector2(10, 20)
 				damage_label.modulate = Color(1, 0, 0)
 				
