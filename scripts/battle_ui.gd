@@ -6,6 +6,8 @@ const CardUI = preload("res://scenes/card_ui.tscn")
 var player_deck: Array[CardData] = []
 var placement_ghost: ColorRect = null
 var dragged_card_data: CardData = null
+var drop_zone_instance: Control = null
+const DropZoneScript = preload("res://scripts/drop_zone.gd")
 
 # --- Node References ---
 @onready var card_container: HBoxContainer = %CardContainer
@@ -40,6 +42,17 @@ func _ready():
 	# Verificar que el contenedor de cartas sea visible
 	print("CardContainer visible: " + str(card_container.visible))
 	print("CardContainer rect_size: " + str(card_container.size))
+
+func _can_drop_data(_pos, data):
+	return data is CardData
+
+func _drop_data(_pos, data):
+	if game_manager.is_placement_valid(1, data, get_tile_pos_from_mouse()):
+		if game_manager.spend_energy(1, data.cost):
+			game_manager.place_tower(1, data, get_tile_pos_from_mouse())
+		else:
+			print("No hay suficiente energía para colocar la torre.")
+	handle_drag_end()
 
 func _process(_delta):
 	if placement_ghost:
@@ -94,10 +107,22 @@ func _on_card_drag_started(card_data: CardData):
 	# Add ghost to the main scene tree to use global coordinates
 	get_tree().root.add_child(placement_ghost)
 
+	# Create and configure the drop zone
+	drop_zone_instance = Control.new()
+	drop_zone_instance.set_script(DropZoneScript)
+	drop_zone_instance.battle_ui = self
+	drop_zone_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(drop_zone_instance)
+
 func handle_drag_end():
-	if placement_ghost:
+	if is_instance_valid(placement_ghost):
 		placement_ghost.queue_free()
 		placement_ghost = null
+	
+	if is_instance_valid(drop_zone_instance):
+			drop_zone_instance.queue_free()
+			drop_zone_instance = null
+
 	dragged_card_data = null
 
 func update_placement_ghost():
@@ -105,8 +130,7 @@ func update_placement_ghost():
 		return
 
 	var tile_map = game_manager.tile_map
-	var mouse_pos = get_viewport().get_mouse_position()
-	var tile_pos = tile_map.local_to_map(tile_map.to_local(mouse_pos))
+	var tile_pos = get_tile_pos_from_mouse()
 
 	# Snap ghost to grid
 	placement_ghost.global_position = tile_map.map_to_local(tile_pos)
@@ -116,3 +140,12 @@ func update_placement_ghost():
 		placement_ghost.color = Color(0, 1, 0, 0.5) # Green
 	else:
 		placement_ghost.color = Color(1, 0, 0, 0.5) # Red
+
+func get_tile_pos_from_mouse() -> Vector2i:
+	var tile_map = game_manager.tile_map
+	# Convert screen coordinates to world coordinates
+	var screen_pos = get_viewport().get_mouse_position()
+	var world_pos = get_viewport().get_canvas_transform().affine_inverse() * screen_pos
+	# Convert world coordinates to tilemap's local coordinates, then to map coordinates
+	var local_pos = tile_map.to_local(world_pos)
+	return tile_map.local_to_map(local_pos)

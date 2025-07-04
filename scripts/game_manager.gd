@@ -163,27 +163,6 @@ func _process(delta):
 	if battle_ui:
 		battle_ui.update_ui(ui_data)
 
-func _can_drop_data(at_position, data):
-	if data is CardData:
-		var tile_pos = tile_map.local_to_map(tile_map.to_local(at_position))
-		# Player's area is the bottom half of the map
-		if tile_pos.y >= MAP_HEIGHT / 2:
-			return is_placement_valid(1, data, tile_pos)
-	return false
-
-func _drop_data(at_position, data):
-	# End the drag after a drop attempt to hide the ghost
-	if battle_ui:
-		battle_ui.handle_drag_end()
-	if data is CardData:
-		var tile_pos = tile_map.local_to_map(tile_map.to_local(at_position))
-		if is_placement_valid(1, data, tile_pos):
-			if spend_energy(1, data.cost):
-				place_tower(1, data, tile_pos)
-				# Here you would typically remove the card from the player's hand
-			else:
-				print("Not enough energy to place tower!")
-
 func generate_map():
 	# Reset tile counts
 	player_tile_count = 0
