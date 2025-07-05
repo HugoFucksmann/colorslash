@@ -44,8 +44,7 @@ var projectile_speed: float = 300.0
 var projectile_damage: int = 20
 
 func setup(card: CardData, p_id: int, tile_pos: Vector2i):
-	# Set properties from the card
-	health = card.health
+	# --- Base Properties from Card ---
 	fire_rate = card.fire_rate
 	projectile_scene = card.projectile_scene
 	size = card.size
@@ -54,9 +53,29 @@ func setup(card: CardData, p_id: int, tile_pos: Vector2i):
 	num_projectiles = card.num_projectiles
 	spread_angle = card.spread_angle
 	projectile_speed = card.projectile_speed
-	projectile_damage = card.projectile_damage
 	attack_type = card.attack_type
+
+	# --- Calculate Leveled Stats ---
+	var card_level = 1
+	# Check if the PlayerData singleton is available in the scene tree
+	var root = get_tree().get_root()
+	if root.has_node("PlayerData"):
+		var player_data = root.get_node("PlayerData")
+		# For the opponent, we can simulate a level or keep it at 1. For now, let's assume level 1.
+		if player_id == 1:
+			card_level = player_data.get_card_level(card.resource_path)
 	
+	# Base stats from the card resource
+	var base_health = card.health
+	var base_damage = card.projectile_damage
+	
+	# Calculate final stats based on level
+	health = base_health + (card_level - 1) * card.health_increase_per_level
+	projectile_damage = base_damage + (card_level - 1) * card.damage_increase_per_level
+	
+	print("Tower %s (Lvl %d) placed. Health: %d, Damage: %d" % [card.card_name, card_level, health, projectile_damage])
+
+	# --- Setup Tower ---
 	# Configure and start the firing timer
 	fire_timer.wait_time = 1.0 / fire_rate
 	fire_timer.start()

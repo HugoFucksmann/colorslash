@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b2yxjq7gq8v2k"]
 
-[ext_resource type="Script" path="res://scripts/deck_builder_screen.gd" id="1_fghij"]
+[ext_resource type="Script" uid="uid://dyokhn8404avq" path="res://scripts/deck_builder_screen.gd" id="1_fghij"]
 
 [node name="DeckBuilderScreen" type="Control"]
 layout_mode = 3
@@ -22,38 +22,42 @@ grow_vertical = 2
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "Deck Builder"
-alignment = 1
 
-[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
+[node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+split_offset = 200
 
-[node name="AvailableCards" type="ScrollContainer" parent="VBoxContainer/HSplitContainer"]
+[node name="AvailableCards" type="ScrollContainer" parent="VBoxContainer/VSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/AvailableCards"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/VSplitContainer/AvailableCards"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/AvailableCards/VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/VSplitContainer/AvailableCards/VBoxContainer"]
 layout_mode = 2
 text = "Available Cards"
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/HSplitContainer/AvailableCards/VBoxContainer"]
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/VSplitContainer/AvailableCards/VBoxContainer"]
 layout_mode = 2
 
-[node name="SelectedDeck" type="ScrollContainer" parent="VBoxContainer/HSplitContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/SelectedDeck"]
+[node name="SelectedDeck" type="ScrollContainer" parent="VBoxContainer/VSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/SelectedDeck/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/VSplitContainer/SelectedDeck"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer/VSplitContainer/SelectedDeck/VBoxContainer"]
 layout_mode = 2
 text = "Selected Deck"
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/HSplitContainer/SelectedDeck/VBoxContainer"]
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/VSplitContainer/SelectedDeck/VBoxContainer"]
 layout_mode = 2

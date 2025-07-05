@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GlobalSignals="*res://scripts/global_signals.gd"
 SceneManager="*res://scripts/scene_manager.gd"
+PlayerData="*res://scripts/player_data.gd"
 
 [display]
 

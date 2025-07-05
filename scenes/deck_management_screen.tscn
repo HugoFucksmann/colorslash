@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3 uid="uid://cm8h1oitmb7rf"]
+
+[ext_resource type="Script" uid="uid://cgn5hbe71cv8x" path="res://scripts/deck_management_screen.gd" id="1_gq2j5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_deck"]
+bg_color = Color(0.1, 0.1, 0.15, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_collection"]
+bg_color = Color(0.15, 0.15, 0.2, 1)
+
+[node name="DeckManagementScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gq2j5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel_Deck" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.3
+theme_override_styles/panel = SubResource("StyleBoxFlat_deck")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Panel_Deck"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="VBoxContainer/Panel_Deck/VBoxContainer"]
+layout_mode = 2
+text = "Battle Deck"
+horizontal_alignment = 1
+
+[node name="DeckGrid" type="HBoxContainer" parent="VBoxContainer/Panel_Deck/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Panel_Collection" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.7
+theme_override_styles/panel = SubResource("StyleBoxFlat_collection")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Panel_Collection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Panel_Collection/VBoxContainer"]
+layout_mode = 2
+text = "Available Cards"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Panel_Collection/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CollectionGrid" type="GridContainer" parent="VBoxContainer/Panel_Collection/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 4

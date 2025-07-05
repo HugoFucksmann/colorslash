@@ -26,6 +26,38 @@ func _process(delta):
 
 	# Check for collisions with tiles during movement
 	check_tile_collision()
+	check_tower_collision()
+
+func check_tower_collision():
+	if not game_manager:
+		return
+
+	var tile_size = game_manager.tile_map.tile_set.tile_size
+	for tower_tile in game_manager.occupied_tiles:
+		var tower = game_manager.occupied_tiles[tower_tile]
+		if tower.player_id == player_id:
+			var tower_pixel_size = Vector2(tower.size * tile_size)
+			var tower_rect = Rect2(tower.global_position - tower_pixel_size / 2, tower_pixel_size)
+
+			if tower_rect.intersects(Rect2(position, Vector2(1, 1))):
+				var center = tower_rect.get_center()
+				var relative_pos = position - center # Use local position for relative calculation
+				var half_size = tower_rect.size / 2.0
+				
+				var overlap_x = half_size.x - abs(relative_pos.x)
+				var overlap_y = half_size.y - abs(relative_pos.y)
+
+				var normal: Vector2
+				if overlap_x < overlap_y:
+					normal = Vector2(sign(relative_pos.x), 0)
+					position.x = center.x + sign(relative_pos.x) * (half_size.x + 1)
+				else:
+					normal = Vector2(0, sign(relative_pos.y))
+					position.y = center.y + sign(relative_pos.y) * (half_size.y + 1)
+				
+				velocity = velocity.bounce(normal)
+				return
+
 
 func setup(p_id: int, direction: Vector2, p_speed: float, p_damage: int):
 	player_id = p_id

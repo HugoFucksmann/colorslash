@@ -251,9 +251,14 @@ func place_tower(player_id: int, card: CardData, origin_tile: Vector2i):
 		tile_size = tile_map.tile_set.tile_size
 	
 	var size_offset = Vector2(card.size) * Vector2(tile_size) / 2.0
-	var world_pos = tile_map.map_to_local(origin_tile) + size_offset
+	var world_pos = tile_map.map_to_local(origin_tile)
 	tower_instance.setup(card, player_id, origin_tile)
 	tower_instance.global_position = world_pos
+	
+	# Adjust the visual offset so the tower's center aligns with the center of its grid area
+	var visual_node = tower_instance.get_node_or_null("ColorRect")
+	if visual_node:
+		visual_node.position = size_offset - (Vector2(tile_size)/2)
 	
 	for x in range(card.size.x):
 		for y in range(card.size.y):
